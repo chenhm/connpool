@@ -1,0 +1,5 @@
+c3p0 在池扩张的过程中会阻塞 getConnection 操作。这个 demo 通过对比 c3p0 和 hikariCP 展现了这个性能问题。
+
+由于建立连接的过程通常很快，为了观测到这个现象你需要一个慢速的DB连接，比如多次网络跳转的远程数据库，使用demo中自带的h2是观测不到这个现象的。
+
+代码中默认启用c3p0，注释 application.yaml 中 c3p0 相关配置即可启用 hikariCP.

@@ -1,0 +1,21 @@
+spring:
+  jpa.hibernate.ddl-auto: create
+  datasource:
+    data: data.sql
+    initialization-mode: always
+#    url: jdbc:oracle:thin:@127.0.0.1:1521:db
+#    username: frank
+#    password: frank
+    url: jdbc:h2:tcp://localhost/~/test
+    username: dbuser
+    hikari.maximum-pool-size: 30
+
+#
+c3p0:
+  datasource:
+#    jdbcUrl: jdbc:oracle:thin:@127.0.0.1:1521:db
+#    password: frank
+    jdbcUrl: jdbc:h2:tcp://localhost/~/test
+    user: dbuser
+    acquireIncrement: 1
+    maxPoolSize: 30
