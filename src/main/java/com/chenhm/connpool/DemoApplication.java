@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -33,43 +34,60 @@ public class DemoApplication {
         SpringApplication.run(DemoApplication.class, args);
     }
 
+    @Value("${loop}")
+    int loop;
+
+    @Value("${concurrency}")
+    int concurrency;
+
+    @Value("${dump.interval}")
+    long dumpInterval = 0;
+
     @Bean
     public ApplicationRunner test(final TestRepository repository) {
         return args -> {
             long start = System.currentTimeMillis();
-            ExecutorService executor = Executors.newFixedThreadPool(30);
-            for (int i = 0; i < 150; i++) {
+            ExecutorService executor = Executors.newFixedThreadPool(concurrency);
+            for (int i = 0; i < loop; i++) {
                 executor.submit(() -> {
-                    Test test = repository.findById("1234").get();
-                    log.info(test.getTest());
+                    long s = System.currentTimeMillis();
+                    Test test = repository.findOne("1234");
+                    log.info(test.getTest() + "," + (System.currentTimeMillis() - s) + "," + formatDate(s));
                 });
             }
             executor.shutdown();
 
-            Thread thread = new Thread(() -> {
-                ThreadMXBean threadMxBean = ManagementFactory.getThreadMXBean();
-                SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd-HHmmss.SSS");
-                for (int i = 1; ; i++) {
-                    try (FileWriter fw = new FileWriter("thread" + sdf.format(new Date()) + ".txt")) {
-                        for (ThreadInfo ti : threadMxBean.dumpAllThreads(true, true)) {
-                            fw.write(dump(ti));
+            if (dumpInterval > 0) {
+                Thread thread = new Thread(() -> {
+                    ThreadMXBean threadMxBean = ManagementFactory.getThreadMXBean();
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd-HHmmss.SSS");
+                    for (int i = 1; ; i++) {
+                        try (FileWriter fw = new FileWriter("thread" + sdf.format(new Date()) + ".txt")) {
+                            for (ThreadInfo ti : threadMxBean.dumpAllThreads(true, true)) {
+                                fw.write(dump(ti));
+                            }
+                        } catch (Exception e) {
+                            log.debug(e.getMessage(), e);
                         }
-                    } catch (Exception e) {
-                        log.debug(e.getMessage(), e);
+                        try {
+                            Thread.sleep(dumpInterval);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                    try {
-                        Thread.sleep(500L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            thread.setDaemon(true);
-            thread.start();
+                });
+                thread.setDaemon(true);
+                thread.start();
+            }
 
-            executor.awaitTermination(30, TimeUnit.SECONDS);
+            executor.awaitTermination(300, TimeUnit.SECONDS);
             System.out.println("finished in " + (System.currentTimeMillis() - start));
         };
+    }
+
+    static String formatDate(long time) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        return sdf.format(new Date(time));
     }
 
     static public String dump(ThreadInfo info) {

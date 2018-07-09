@@ -18,4 +18,9 @@ c3p0:
     jdbcUrl: jdbc:h2:tcp://localhost/~/test
     user: dbuser
     acquireIncrement: 1
-    maxPoolSize: 30
+    maxPoolSize: 60
+
+loop: 200
+concurrency: 30
+dump.interval: 500
+#dump.interval: 0
