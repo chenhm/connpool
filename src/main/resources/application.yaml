@@ -5,9 +5,9 @@ spring:
     initialization-mode: always
 #    url: jdbc:oracle:thin:@127.0.0.1:1521:db
 #    username: frank
-#    password: frank
-    url: jdbc:h2:tcp://localhost/~/test
-    username: dbuser
+#    password:
+    url: jdbc:h2:mem:test
+    username: sa
     hikari.maximum-pool-size: 30
 
 #
@@ -15,12 +15,14 @@ c3p0:
   datasource:
 #    jdbcUrl: jdbc:oracle:thin:@127.0.0.1:1521:db
 #    password: frank
-    jdbcUrl: jdbc:h2:tcp://localhost/~/test
-    user: dbuser
+    jdbcUrl: jdbc:h2:mem:test
+    user: sa
     acquireIncrement: 1
-    maxPoolSize: 60
+    maxPoolSize: 30
 
 loop: 200
 concurrency: 30
-dump.interval: 500
-#dump.interval: 0
+#dump.interval: 500
+dump.interval: 0
+
+http.url: http://127.0.0.1:8080/test
